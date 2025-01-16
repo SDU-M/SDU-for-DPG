@@ -1,6 +1,13 @@
-# **DPG SDU**
+# **An architectural solution for effective analytics**
+# **SDU for DPG**
 
 ## **Before You Begin**
+
+### Minimal Hardware Requirements
+
+- **Memory**: At least 4GB RAM, preferably 8GB for optimal performance.
+- **Storage**: Sufficient disk space for Docker images and containers (At Least 50Gb for comfortable start).
+- **Network**: Reliable internet connection for downloading dependencies and accessing services.
 
 ### Prerequisites
 
