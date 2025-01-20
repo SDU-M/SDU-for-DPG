@@ -17,6 +17,7 @@ Smart Data Ukimet (SDU) is an advanced information and analytical system develop
 - **Global Recognition**: Ranked **Top 3** in the Open Source Adaptation category at the **Future of Government Awards 2023**, recommended for global use by the UNDP.
 
 ### Achievements:
+- The most significant case on the Smart Data Ukimet platform is the «Digital Family Card» was honored as the best in the "Inclusive Digital Transformation" category, receiving the prestigious 2024 GovTech Prize.
 - Supports decision-making processes with reliable, encrypted, and depersonalized data.
 - Facilitates targeted state support with real-time analytics.
 - Recognized globally as a model for scalable, open-source solutions in government analytics.
