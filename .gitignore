@@ -1,3 +1,4 @@
 .env
 airflow/.env
 superset/
+.DS_Store
