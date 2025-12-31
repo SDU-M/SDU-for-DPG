@@ -86,7 +86,7 @@ Apache Airflow is used for task orchestration. Ensure your Docker Engine has at 
 
 ---
 
-## **3. Deploy Apache Superset**
+## **3. Deploy Apache Superset (v5.0)**
 
 Apache Superset is a business intelligence (BI) tool.
 
@@ -102,9 +102,11 @@ Apache Superset is a business intelligence (BI) tool.
    git clone --depth=1 https://github.com/apache/superset.git
    ```
 
-3. **Navigate to the Superset directory**:
+3. **Navigate to the Superset directory and Checkout Version 5.0: It is crucial to use a stable release tag**:
    ```bash
    cd superset
+   git fetch --tags
+   git checkout 5.0.0
    ```
 
 4. **Replace the `docker-compose-non-dev.yml` file**:  
@@ -114,6 +116,19 @@ Apache Superset is a business intelligence (BI) tool.
    Edit `/superset/docker/.env`:
    ```
    SUPERSET_ENV=production
+   ```
+6. **Configure Environment: Superset 5.0 requires a unique SECRET_KEY**.
+   Copy the local environment config:
+
+   ```bash
+   cp docker/.env-local docker/.env
+   ```
+
+   Generate a secret key and add it to .env:
+
+   ```bash
+   # Mac/Linux
+   echo "SECRET_KEY=$(openssl rand -base64 42)" >> docker/.env
    ```
 
 6. **Start Superset**:
@@ -139,6 +154,10 @@ Apache Superset is a business intelligence (BI) tool.
      ```bash
      docker network connect shared_network <container_name>
      ```
+   - Verify Network Connectivity: Ensure all major services are on the network:
+      ```bash
+      docker network inspect shared_network
+      ```
 
 3. **Connect ClickHouse to Superset**:
    - Access the Superset container:
@@ -149,6 +168,11 @@ Apache Superset is a business intelligence (BI) tool.
      ```bash
      pip install clickhouse-connect
      ```
+   - Or add clickhouse-connect>=0.6.0 to requirements and use compose up with build command
+   ```bash
+   docker compose -f docker-compose-non-dev.yml up --build -d
+   ```
+
    - Now, you can create a database connection in Superset. Use:
      - Host: `clickhouse`
      - Port: `8123`
@@ -185,3 +209,5 @@ Apache Superset is a business intelligence (BI) tool.
 - Ensure all Docker services are running smoothly.
 - Monitor logs for errors during setup.
 - Allocate sufficient system resources for Docker containers.
+- Performance: Superset 5.0 + Postgres 16 may require more resources. Ensure Docker has at least 6GB+ RAM allocated.
+- Persistence: Data for Superset is stored in the db_home docker volume. If you remove volumes (docker compose down -v), data will be lost.

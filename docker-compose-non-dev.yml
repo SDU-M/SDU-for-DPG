@@ -21,12 +21,8 @@
 # create you own docker environment file (docker/.env) with your own
 # unique random secure passwords and SECRET_KEY.
 # -----------------------------------------------------------------------
-x-superset-depends-on: &superset-depends-on
-  - db
-  - redis
 x-superset-volumes:
-  # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
-  &superset-volumes
+  &superset-volumes # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
   - ./docker:/app/docker
   - superset_home:/app/superset_home
 
@@ -38,7 +34,7 @@ x-common-build: &common-build
 
 services:
   redis:
-    image: redis:7.4
+    image: redis:7
     container_name: superset_cache
     restart: unless-stopped
     volumes:
@@ -52,7 +48,7 @@ services:
         required: true
       - path: docker/.env-local # optional override
         required: false
-    image: postgres:15
+    image: postgres:16
     container_name: superset_db
     restart: unless-stopped
     volumes:
@@ -70,12 +66,14 @@ services:
     build:
       <<: *common-build
     container_name: superset_app
-    command: [ "/app/docker/docker-bootstrap.sh", "app-gunicorn" ]
+    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
     user: "root"
     restart: unless-stopped
     ports:
       - 8088:8088
-    depends_on: *superset-depends-on
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
     volumes: *superset-volumes
     networks:
       - shared_network
@@ -84,13 +82,17 @@ services:
     container_name: superset_init
     build:
       <<: *common-build
-    command: [ "/app/docker/docker-init.sh" ]
+    command: ["/app/docker/docker-init.sh"]
     env_file:
       - path: docker/.env # default
         required: true
       - path: docker/.env-local # optional override
         required: false
-    depends_on: *superset-depends-on
+    depends_on:
+      db:
+        condition: service_started
+      redis:
+        condition: service_started
     user: "root"
     volumes: *superset-volumes
     networks:
@@ -102,33 +104,41 @@ services:
     build:
       <<: *common-build
     container_name: superset_worker
-    command: [ "/app/docker/docker-bootstrap.sh", "worker" ]
+    command: ["/app/docker/docker-bootstrap.sh", "worker"]
     env_file:
       - path: docker/.env # default
         required: true
       - path: docker/.env-local # optional override
         required: false
     restart: unless-stopped
-    depends_on: *superset-depends-on
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
     user: "root"
     volumes: *superset-volumes
     networks:
       - shared_network
     healthcheck:
-      test: [ "CMD-SHELL", "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME" ]
+      test:
+        [
+          "CMD-SHELL",
+          "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME",
+        ]
 
   superset-worker-beat:
     build:
       <<: *common-build
     container_name: superset_worker_beat
-    command: [ "/app/docker/docker-bootstrap.sh", "beat" ]
+    command: ["/app/docker/docker-bootstrap.sh", "beat"]
     env_file:
       - path: docker/.env # default
         required: true
       - path: docker/.env-local # optional override
         required: false
     restart: unless-stopped
-    depends_on: *superset-depends-on
+    depends_on:
+      superset-init:
+        condition: service_completed_successfully
     user: "root"
     volumes: *superset-volumes
     networks:
@@ -136,9 +146,11 @@ services:
     healthcheck:
       disable: true
 
+# Define the network explicitly so it matches your other services
 networks:
   shared_network:
-    driver: bridge
+    name: shared_network
+    external: true
 
 volumes:
   superset_home:
