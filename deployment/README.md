@@ -172,7 +172,7 @@ Apache Superset is a business intelligence (BI) tool.
    ```bash
    docker compose -f docker-compose-non-dev.yml up --build -d
    ```
-
+   - Access Superset: http://localhost:8088 (Default login: admin / admin)
    - Now, you can create a database connection in Superset. Use:
      - Host: `clickhouse`
      - Port: `8123`
